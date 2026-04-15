@@ -12,20 +12,16 @@ pipeline {
         JFROG_CREDS = credentials('jfrog-creds')
 
         MAVEN_REPO = 'Maven-repo'
-        DOCKER_REPO = 'docker-repo'
-
         IMAGE_NAME = 'trialwcx5g6.jfrog.io/docker-repo/myapp'
+
         APP_NAME = 'myapp'
-
-    environment {
-        APP_NAME = "myapp"
-        CONTAINER_NAME = "myapp-container"
-        PORT = "8081"
-
+        CONTAINER_NAME = 'myapp-container'
+        PORT = '8081'
     }
 
     stages {
 
+        // ✅ CLONE
         stage('Clone Code') {
             when { expression { params.VERSION == '' } }
             steps {
@@ -33,22 +29,15 @@ pipeline {
             }
         }
 
+        // ✅ BUILD
         stage('Build Artifact') {
             when { expression { params.VERSION == '' } }
-        stage('Checkout Code') {
             steps {
-                git branch: 'main', url: 'https://github.com/<your-username>/myapp.git'
+                sh 'mvn clean package'
             }
         }
 
-        stage('Build & Upload to JFrog') {
-
-            steps {
-                sh 'mvn clean deploy'
-            }
-        }
-
-
+        // ✅ UPLOAD WAR
         stage('Upload to JFrog') {
             when { expression { params.VERSION == '' } }
             steps {
@@ -60,6 +49,7 @@ pipeline {
             }
         }
 
+        // ✅ DOCKER BUILD
         stage('Build Docker Image') {
             when { expression { params.VERSION == '' } }
             steps {
@@ -69,6 +59,7 @@ pipeline {
             }
         }
 
+        // ✅ DOCKER LOGIN
         stage('Docker Login') {
             steps {
                 sh """
@@ -77,6 +68,7 @@ pipeline {
             }
         }
 
+        // ✅ PUSH IMAGE
         stage('Push Image') {
             when { expression { params.VERSION == '' } }
             steps {
@@ -86,49 +78,33 @@ pipeline {
             }
         }
 
-        stage('Deploy to Tomcat') {
+        // ✅ DEPLOY / ROLLBACK
+        stage('Deploy') {
             steps {
                 script {
                     def deployVersion = params.VERSION ?: env.BUILD_NUMBER
 
                     sh """
-                    docker stop tomcat || true
-                    docker rm tomcat || true
+                    docker rm -f $CONTAINER_NAME || true
 
                     docker pull ${IMAGE_NAME}:${deployVersion}
 
                     docker run -d \
-                        --name tomcat \
-                        -p 8081:8080 \
+                        --name $CONTAINER_NAME \
+                        -p $PORT:8080 \
                         ${IMAGE_NAME}:${deployVersion}
                     """
                 }
-        stage('Docker Build') {
-            steps {
-                sh 'docker build -t $APP_NAME .'
             }
-        }
-
-        stage('Deploy Container') {
-            steps {
-                sh '''
-                docker rm -f $CONTAINER_NAME || true
-                docker run -d -p $PORT:8080 --name $CONTAINER_NAME $APP_NAME
-                '''
-             }
         }
     }
 
     post {
         success {
-          echo "Deployment Successful"
+            echo "Deployment Successful 🚀"
         }
         failure {
-            echo "Pipeline Failed"
-            echo "Build Successful"
-        }
-        failure {
-            echo "Build Failed"
+            echo "Pipeline Failed ❌"
         }
     }
 }
