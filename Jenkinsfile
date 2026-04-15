@@ -3,9 +3,16 @@ pipeline {
 
     stages {
 
-        stage('Build & Upload to JFrog') {
+        stage('Checkout') {
             steps {
-                sh 'mvn clean deploy'
+                deleteDir()        
+                checkout scm       
+            }
+        }
+
+        stage('Build') {
+            steps {
+                sh 'mvn clean package'
             }
         }
 
