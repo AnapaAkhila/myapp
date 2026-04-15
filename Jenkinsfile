@@ -1,10 +1,6 @@
 pipeline {
     agent any
 
-    tools {
-        maven 'Maven'   // Jenkins configured Maven name
-    }
-
     stages {
 
         stage('Build & Upload to JFrog') {
