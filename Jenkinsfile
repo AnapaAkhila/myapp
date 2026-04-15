@@ -1,7 +1,6 @@
 pipeline {
     agent any
 
-<<<<<<< HEAD
     parameters {
         string(name: 'VERSION', defaultValue: '', description: 'Rollback version (leave empty for latest)')
     }
@@ -17,17 +16,16 @@ pipeline {
 
         IMAGE_NAME = 'trialwcx5g6.jfrog.io/docker-repo/myapp'
         APP_NAME = 'myapp'
-=======
+
     environment {
         APP_NAME = "myapp"
         CONTAINER_NAME = "myapp-container"
         PORT = "8081"
->>>>>>> 8790141 (commit1)
+
     }
 
     stages {
 
-<<<<<<< HEAD
         stage('Clone Code') {
             when { expression { params.VERSION == '' } }
             steps {
@@ -37,7 +35,6 @@ pipeline {
 
         stage('Build Artifact') {
             when { expression { params.VERSION == '' } }
-=======
         stage('Checkout Code') {
             steps {
                 git branch: 'main', url: 'https://github.com/<your-username>/myapp.git'
@@ -45,13 +42,13 @@ pipeline {
         }
 
         stage('Build & Upload to JFrog') {
->>>>>>> 8790141 (commit1)
+
             steps {
                 sh 'mvn clean deploy'
             }
         }
 
-<<<<<<< HEAD
+
         stage('Upload to JFrog') {
             when { expression { params.VERSION == '' } }
             steps {
@@ -106,7 +103,6 @@ pipeline {
                         ${IMAGE_NAME}:${deployVersion}
                     """
                 }
-=======
         stage('Docker Build') {
             steps {
                 sh 'docker build -t $APP_NAME .'
@@ -119,24 +115,20 @@ pipeline {
                 docker rm -f $CONTAINER_NAME || true
                 docker run -d -p $PORT:8080 --name $CONTAINER_NAME $APP_NAME
                 '''
->>>>>>> 8790141 (commit1)
-            }
+             }
         }
     }
 
     post {
         success {
-<<<<<<< HEAD
-            echo "Deployment Successful"
+          echo "Deployment Successful"
         }
         failure {
             echo "Pipeline Failed"
-=======
             echo "Build Successful"
         }
         failure {
             echo "Build Failed"
->>>>>>> 8790141 (commit1)
         }
     }
 }
